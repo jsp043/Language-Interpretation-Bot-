@@ -14,6 +14,21 @@ function twitter(){
 		access_token_secret: twitterKeys.access_token_secret
   });
 	var params = {screen_name: 'jennayblock'};
+	console.log(params);
+	assignKey.get('statuses/user_timeline', params, function(error, tweets) {
+		    if (error) {
+      console.log(error);
+    }
+    else {
+      // for loop to run through the length of my account's tweets
+      console.log("\nTweet\n");
+      for(i=0; i< tweets.length; i++){
+        // adds a number and dot before to show order
+        console.log("@jennayblock: " + tweets[i].text + " Created At: " + date.substring(0, 19));
+      }
+    }
+  });
+}
 
 function spotifySearch(song){
   spotify.search({ type: 'track', query: song}, function(error, data){
@@ -63,3 +78,97 @@ function chosenMovie(userMovieInput){
     start();
   });
 }
+
+//FS Node Package
+
+function randomChoice(){
+  fs.readFile("random.txt", 'utf8', function(error, data) {       
+    // If the code experiences any errors it will log the error to the console. 
+      if(error) {
+          return console.log(error);
+      }else{
+        var dataArr = data.split(",");
+        var userFirstInput = dataArr[0];
+        var userSecondInput = dataArr[1];
+
+        switch(userFirstInput){
+          case "spotify-this-song":
+            chosenSpotify(userSecondInput);
+            break;
+        }
+      }
+  });     
+}
+
+// Appends all the file to log.txt
+function logText(data){
+  console.log(data);
+  fs.appendFile("./log.txt", data + "\n", function(err){
+    if(err){
+      console.log('Error occurred: ' + err);
+    }
+  });
+}
+
+function start(){
+  inquirer.prompt([
+    {
+      type: "list",
+      name: "selectOption",
+      message: "Hello! I am Liri! Which option would you like to select?",
+      choices: ["My Twitter", "Spotify", "Movies", "Done"] 
+    }
+  ]).then(function(user) {
+    if (user.selectOption == "My Twitter"){
+      myTweets();
+    }else if (user.selectOption == "Spotify"){
+      inquirer.prompt([
+        {
+          type: "input",
+          name: "songChoice",
+          message: "What song would you like to check out?",
+        }
+      ]).then(function(userSpotInput){
+        if (userSpotifyInput.songChoice == ""){
+          chosenSpotify("Lemonade")
+        }else{
+          chosenSpotify(userSpotifyInput.songChoice);  
+        }
+      })
+    }else if (user.whatToPick == "Movies"){
+      inquirer.prompt([
+        {
+          type: "input",
+          name: "movieChoice",
+          message: "Which movie should we search?",
+        }
+      ]).then(function(userMovieInput){
+        if (userMovieInput.movieChoice == ""){
+          chosenMovie("Mr. Nobody")
+        }else{
+          chosenMovie(userMovieInput.movieChoice);
+        }
+
+      })    
+    }else if (user.whatToPick == "Random"){
+      randomChoice();   
+    }else if (user.whatToPick == "Done"){
+      inquirer.prompt([
+        {
+          type: "confirm",
+          name: "doneLiri",
+          message: "Are you sure you are done?",
+        }
+      ]).then(function(leave){
+        if (leave.doneLiri == true){
+          console.log("Bye!");
+        }else{
+          start();
+        }
+
+      })  
+    }
+  })
+}
+
+start();
